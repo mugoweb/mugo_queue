@@ -1,0 +1,23 @@
+Random thoughts
+===============
+
+1) The limit parameter is important to have control over the iterations.
+   It would be nice to have the task objects working with a limit but
+   it's not safe to rely on it.
+    
+2) MultiThread needs the function init on task objects (this is not obvious)
+
+3) Don't add dependencies to avoid deadlocks
+
+4) Needs to gracefully handle edge cases like
+   a) task cannot get executed anymore and therefore stays in queue forever
+   b) any other edge cases?
+   
+5) Call TaskController - QueueDispatcher
+
+6) Threadpoll size configured by Dispatcher but batch size configured by
+   MugoTask
+    
+7) Event logging is random - hard to see what's happening
+
+8) Take away the parameters from execute and have it set with a function

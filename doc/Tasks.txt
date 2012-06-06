@@ -1,0 +1,11 @@
+List of Task implementations
+============================
+
+
+MugoSearchIndex
+---------------
+The purpose of MugoSearchIndex is to re-build the search index, whether that is for the entire tree or for a specific subset.
+You can execute the MugoSearchIndex task with multiple threads.
+It is recommended to optimize the search index after adding/updating a lot of objects in the search index. You can do this with:
+php extension/ezfind/bin/php/ezsolroptimize.php
+

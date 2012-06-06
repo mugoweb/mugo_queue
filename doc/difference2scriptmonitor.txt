@@ -1,0 +1,35 @@
+What's the difference between Mugo Queue and eZ Script Monitor?
+===============================================================
+
+eZ Script Monitor's (http://projects.ez.no/ezscriptmonitor) description:
+"This extension aims to avoid timeout problems and database corruption by
+moving long running processes from the GUI to the background."
+
+A typical use case is the removal of an attribute from a content class
+in the admin GUI. If you have a lot of instances for that content class, the process
+gets interrupted (because of a max execution/memory limit
+configuration) and leaves the DB in a corrupt state (the attribute did not get removed for all
+content class instances).
+
+eZ Script Monitor schedules the process and lets a command line script execute
+it. Typically, the command line has no limits on execution time or memory usage.
+
+Today (March 2011), eZ Script Monitor supports some very important admin tasks:
+- Class editing
+- Subtree removal
+
+It comes with an admin UI that lists all eZ Script Monitor scripts and shows the
+script progress (if the script supports that feature).
+
+Scripts need to regularly submit feedback to eZ Script Monitor. But
+eZ Script Monitor has no influence on the script itself. If a script fails
+or gets interrupted, you would need to re-run the entire script.
+
+That's the key difference between Mugo Queue and eZ Script Monitor. Mugo Queue uses a queue
+to execute tasks. You can decide to only execute a limited number of tasks or have a time
+limitation. Executed tasks get removed from the queue and don't get executed again.
+
+Mugo Queue has no GUI to show the state of the queue. Today (March 2011),
+the only task built-in to Mugo Queue is eZ Find search engine re-indexing.
+
+Mugo Queue also supports multiple threads to execute tasks from the queue.
