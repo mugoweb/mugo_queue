@@ -1,9 +1,10 @@
 <?php
-
 /*
  * Call me like this:
  * 
  * php extension/mugo_queue/bin/run.php 
+ * 
+ * See help screen for more options.
  * 
  */
 ini_set( 'memory_limit', '-1' );
@@ -32,6 +33,12 @@ $task_type_id_option->mandatory = true;
 $task_type_id_option->shorthelp = 'Task ID string.';
 $params->registerOption( $task_type_id_option );
 
+$queueClass_option = new ezcConsoleOption( 'q', 'queue', ezcConsoleInput::TYPE_STRING );
+$queueClass_option->mandatory = false;
+$queueClass_option->shorthelp = 'Queue PHP class name.';
+$queueClass_option->default = 'MugoQueueEz';
+$params->registerOption( $queueClass_option );
+
 $limit_option = new ezcConsoleOption( 'l', 'limit', ezcConsoleInput::TYPE_INT );
 $limit_option->mandatory = false;
 $limit_option->shorthelp = 'Task execution limit.';
@@ -52,6 +59,11 @@ $siteaccess_option = new ezcConsoleOption( 's', 'siteaccess', ezcConsoleInput::T
 $siteaccess_option->mandatory = false;
 $siteaccess_option->shorthelp = "The siteaccess name. Not yet supported";
 $params->registerOption( $siteaccess_option );
+
+$user_option = new ezcConsoleOption( 'u', 'user', ezcConsoleInput::TYPE_STRING );
+$user_option->mandatory = false;
+$user_option->shorthelp = 'Specify a user context. Handy if the task needs specific user permissions';
+$params->registerOption( $user_option );
 
 // Process console parameters
 try
@@ -87,6 +99,21 @@ if( $siteaccess_option->value )
 
 $ezp_script_env->initialize();
 
+if( $user_option->value )
+{
+	$user = eZUser::fetchByName( $user_option->value );
+	
+	if( $user )
+	{
+		$userID = $user->attribute( 'contentobject_id' );
+		eZUser::setCurrentlyLoggedInUser( $user, $userID );
+	}
+	else
+	{
+		echo 'Unkown user specified.' . "\n";
+		die();
+	}	
+}
 
 ####################
 # Script process
@@ -125,11 +152,13 @@ if( $options_str )
 if ( !$is_quiet ) $cli->output( '== INIT ==' );
 if ( !$is_quiet ) $cli->output( 'Action: '. $action . ' Task Type Id: ' . $task_type_id . ' Limit: ' . $limit . ' Parameter Count: ' . count( $parameters ) );
 
+$mugoQueue = MugoQueueFactory::factory( $queueClass_option->value );
+
 switch( $action )
 {
 	case 'create':
 	{
-		$task_controller = new MugoTaskController();
+		$task_controller = new MugoTaskController( $mugoQueue );
 		$task_controller->create( $task_type_id, $parameters, $limit );
 	}
 	break;
@@ -138,11 +167,12 @@ switch( $action )
 	{
 		if( $threads_option->value > 1 )
 		{
-			$task_controller = new MugoTaskControllerMultiThread( $threads_option->value );
+			$task_controller = new MugoTaskControllerMultiThread( $mugoQueue );
+			$task_controller->setPoolSize( $threads_option->value );
 		}
 		else
 		{
-			$task_controller = new MugoTaskController();
+			$task_controller = new MugoTaskController( $mugoQueue );
 		}
 		$task_controller->execute( $task_type_id, $parameters, $limit );
 	}
@@ -150,7 +180,7 @@ switch( $action )
 	
 	case 'list':
 	{
-		$tasks = MugoQueue::get_tasks( $task_type_id, $limit );
+		$tasks = $mugoQueue->get_tasks( $task_type_id, $limit );
 		
 		foreach( $tasks as $index => $task )
 		{
@@ -161,20 +191,20 @@ switch( $action )
 
     case 'count':
     {
-        $task_count = MugoQueue::get_tasks_count( $task_type_id );
+        $task_count = $mugoQueue->get_tasks_count( $task_type_id );
         $cli->output( $task_count );
     }
     break;
 
 	case 'remove':
 	{
-		MugoQueue::remove_tasks( $task_type_id );
+		$mugoQueue->remove_tasks( $task_type_id );
 	}
 	break;
 
 	case 'remove_all':
 	{
-		MugoQueue::remove_tasks();
+		$mugoQueue->remove_tasks();
 	}
 	break;
 	

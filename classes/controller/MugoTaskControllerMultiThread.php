@@ -1,14 +1,8 @@
 <?php
 class MugoTaskControllerMultiThread extends MugoTaskController
 {
-	protected $pool;
-	protected $pool_size;
-
-	function __construct( $pool_size = 2 )
-	{
-		$this->pool_size  = $pool_size;
-		$this->pool = array();
-	}
+	protected $pool = array();
+	protected $pool_size = 2;
 		
     public function execute( $task_type_id, $parameters = null, $limit = 0 )
 	{
@@ -64,30 +58,36 @@ class MugoTaskControllerMultiThread extends MugoTaskController
 		}
 	}
     
-	function finish_task( $pid )
+	protected function finish_task( $pid )
 	{
 		$mugo_task = $this->pool[ $pid ];
 
 		$task_ids = $mugo_task->get_task_ids();
 		$mugo_task->post_execute();
 		
-		MugoQueue::remove_tasks( get_class( $mugo_task ), $task_ids );
+		$this->mugoQueue->remove_tasks( get_class( $mugo_task ), $task_ids );
 
 		$this->log( 'Batch execution finished. PID: ' . $pid );
 		unset( $this->pool[ $pid ] );
     }
 
+	public function setPoolSize( $size )
+	{
+		$this->pool_size = $size;
+	}
+    
     private function get_task_ids( $task_type_id, $limit )
     {
-    	$return = array();
+		$return = array();
     	
-    	$tasks = MugoQueue::get_tasks( $task_type_id, $limit );
-    	foreach( $tasks as $task )
-    	{
-    		$return[] = $task[ 'id' ];
-    	}
+		$tasks = $this->mugoQueue->get_tasks( $task_type_id, $limit );
+		foreach( $tasks as $task )
+		{
+			$return[] = $task[ 'id' ];
+		}
     	
-    	return $return;
+		return $return;
     }
 }
+
 ?>

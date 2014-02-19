@@ -4,6 +4,12 @@ class MugoTaskController
 {
 
 	public $log_destination = 'mugo_queue_controller.log';
+	public $mugoQueue;
+	
+	public function __construct( $mugoQueue )
+	{
+		$this->mugoQueue = $mugoQueue;
+	}
 	
 	/*
 	 * Directly adds a list of task ids to the queue
@@ -11,7 +17,7 @@ class MugoTaskController
 	 */
 	public function add( $task_type_id, $task_ids )
 	{
-		MugoQueue::add_tasks( $task_type_id, $task_ids );		
+		$this->mugoQueue->add_tasks( $task_type_id, $task_ids );		
 	}
 	
 	/* 
@@ -23,7 +29,7 @@ class MugoTaskController
 		
 		$task_ids = $mugo_task->create( $parameters );
 		
-		MugoQueue::add_tasks( $task_type_id, $task_ids, $limit );
+		$this->mugoQueue->add_tasks( $task_type_id, $task_ids, $limit );
 	
 		$this->log( count( $task_ids ) . ' task(s) created.' );
 	}	
@@ -31,7 +37,7 @@ class MugoTaskController
 	public function execute( $task_type_id, $parameters = null, $limit = 0 )
 	{
 		$mugo_task = MugoTaskController::task_factory( $task_type_id );
-		$tasks  = MugoQueue::get_tasks( $task_type_id, $limit );
+		$tasks  = $this->mugoQueue->get_tasks( $task_type_id, $limit );
 		
 		if( !empty( $tasks ) )
 		{
@@ -41,7 +47,7 @@ class MugoTaskController
 				
 				if( $success )
 				{
-					MugoQueue::remove_tasks( $task_type_id, array( $task[ 'id' ] ) );
+					$this->mugoQueue->remove_tasks( $task_type_id, array( $task[ 'id' ] ) );
 				}
 				else
 				{
@@ -69,7 +75,7 @@ class MugoTaskController
 	{
 		$this->log( 'Remove tasks' );
 		
-		MugoQueue::remove_tasks( $task_type_id );
+		$this->mugoQueue->remove_tasks( $task_type_id );
 	}
 	
 	public static function task_factory( $task_type_id )
@@ -101,4 +107,5 @@ class MugoTaskController
 		eZLog::write( $output, $this->log_destination );
 	}
 }
+
 ?>

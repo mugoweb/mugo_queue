@@ -2,7 +2,7 @@
 /*
  * Call me like this:
  * 
- * php extension/mugo_queue/bin/daemon.php 
+ * php extension/mugo_queue/bin/worker.php 
  * 
  */
 declare( ticks = 1 );
@@ -42,7 +42,7 @@ catch ( ezcConsoleOptionException $e )
 {
 	echo $e->getMessage(). "\n";
 	echo "\n";
-	echo $params->getHelpText( 'Mugo Queue Daemon.' ) . "\n";
+	echo $params->getHelpText( 'Mugo Queue Worker.' ) . "\n";
 	echo "\n";
 	exit();
 }
@@ -60,8 +60,8 @@ $ezp_script_env = eZScript::instance( array( 'debug-message' => '',
 $ezp_script_env->startup();
 $ezp_script_env->initialize();
 
-pcntl_signal( SIGTERM, 'daemonSignalHandler' );
-pcntl_signal( SIGINT,  'daemonSignalHandler' );
+$mugoQueue = MugoQueueFactory::factory();
+$controller = MugoTaskControllerFactory::factory( 'MugoTaskControllerDaemonPCNTL' );
 
 // The endless loop
 $GLOBALS[ 'mugo_daemon' ][ 'running' ] = true;
@@ -71,10 +71,9 @@ while( $GLOBALS[ 'mugo_daemon' ][ 'running' ] )
 {
 	if( ! is_too_busy() )
 	{
-		if( has_work() )
+		if( has_work( $mugoQueue ) )
 		{
 			echo '+';
-			$controller = new MugoTaskControllerDaemon();
 			$controller->execute();
 			
 			sleep( 3 );
@@ -110,29 +109,7 @@ function is_too_busy()
 
 function has_work()
 {
-	return MugoQueue::get_tasks_count() > 0;
-}
-
-function daemonSignalHandler( $signo )
-{
-	switch( $signo )
-	{
-		case SIGTERM:
-		case SIGINT:
-		{
-			if( ! $GLOBALS[ 'mugo_daemon' ][ 'force_quit' ] )
-			{
-				$GLOBALS[ 'mugo_daemon' ][ 'running' ] = false;
-				$GLOBALS[ 'mugo_daemon' ][ 'force_quit' ] = true;
-				echo 'Please wait for script to terminate... ';
-			}
-			else
-			{
-				exit(1);
-			}
-		}
-		break;
-	}
+	return $mugoQueue->get_tasks_count() > 0;
 }
 
 ?>

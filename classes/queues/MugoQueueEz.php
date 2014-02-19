@@ -1,20 +1,21 @@
-<?php
+ <?php
 
 /*
- * Static methods to read/write to the ezpending_actions table
+ * Wrapper around a queue solution
  */
-class MugoQueue
+class MugoQueueEz extends MugoQueue
 {
+	
 	/**
 	 * Enter description here ...
 	 * 
 	 * TODO: missing limit parameter handling
 	 * 
-	 * @param unknown_type $task_type_id
+	 * @param String $task_type_id
 	 * @param array $task_ids
 	 * @param unknown_type $limit
 	 */
-	static public function add_tasks( $task_type_id, $task_ids, $limit )
+	public function add_tasks( $task_type_id, $task_ids, $limit )
 	{
 		$db = eZDB::instance();
 		
@@ -29,9 +30,9 @@ class MugoQueue
 		$sql_inserts = array();
 		foreach( $task_ids as $index => $id )
 		{
-			if( (int) $id )
+			if( $id !== '' )
 			{
-				$sql_inserts[] = '( "mugo-queue-'. $task_type_id .'", '. time() . ', '. (int) $id . ')';
+				$sql_inserts[] = '( "mugo-queue-'. $task_type_id .'", '. time() . ', '. $db->escapeString( $id ) . ')';
 			}
 			
 			if( ( count( $sql_inserts ) % 1000 ) == 999 )
@@ -53,7 +54,7 @@ class MugoQueue
 
 	
 	//TODO: put it back to just return a list of task ids
-	static public function get_tasks( $task_type_id = null, $limit = false )
+	public function get_tasks( $task_type_id = null, $limit = false )
 	{
 		$return = array();
 		
@@ -91,7 +92,7 @@ class MugoQueue
 	}
 	
 	//TODO support to remove only one instance of duplicate task ids
-	static public function remove_tasks( $task_type_id, $object_ids = null )
+	public function remove_tasks( $task_type_id, $object_ids = null )
 	{
 		$db = eZDB::instance();
 
@@ -115,7 +116,7 @@ class MugoQueue
 		$db->query( $sql );
 	}
 	
-	static public function get_tasks_count( $task_type_id = null )
+	public function get_tasks_count( $task_type_id = null )
 	{
 		$return = false;
 		
@@ -144,7 +145,7 @@ class MugoQueue
 		return $return;
 	}
 	
-	static public function get_random_tasks()
+	public function get_random_tasks()
 	{
 		$return = array();
 		

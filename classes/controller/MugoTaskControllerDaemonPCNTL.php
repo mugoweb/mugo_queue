@@ -1,12 +1,15 @@
 <?php
-class MugoTaskControllerDaemon extends MugoTaskController
+class MugoTaskControllerDaemonPCNTL extends MugoTaskController
 {
 	function __construct()
-	{}
+	{
+		pcntl_signal( SIGTERM, 'MugoTaskControllerDaemonPCNTL::daemonSignalHandler' );
+		pcntl_signal( SIGINT,  'MugoTaskControllerDaemonPCNTL::daemonSignalHandler' );
+	}
 		
 	public function execute()
 	{
-		$tasks  = MugoQueue::get_random_tasks();
+		$tasks  = $this->mugoQueue->get_random_tasks();
 			
 		if( ! empty( $tasks ) )
 		{
@@ -20,7 +23,7 @@ class MugoTaskControllerDaemon extends MugoTaskController
 				
 				if( $success )
 				{
-					MugoQueue::remove_tasks( $task[ 'type' ], array( $task[ 'id' ] ) );
+					$this->mugoQueue->remove_tasks( $task[ 'type' ], array( $task[ 'id' ] ) );
 					$mugo_task->post_execute();
 					
 					$this->log( 'Task "' . get_class( $mugo_task ) . '" with ID ' . $task[ 'id' ] . ' executed.' );
@@ -37,6 +40,29 @@ class MugoTaskControllerDaemon extends MugoTaskController
 				unset( $GLOBALS[ 'eZTemplateInstance' ] );
 			}
 		}
-	}	
+	}
+	
+	public static function daemonSignalHandler( $signo )
+	{
+		switch( $signo )
+		{
+			case SIGTERM:
+			case SIGINT:
+			{
+				if( ! $GLOBALS[ 'mugo_daemon' ][ 'force_quit' ] )
+				{
+					$GLOBALS[ 'mugo_daemon' ][ 'running' ] = false;
+					$GLOBALS[ 'mugo_daemon' ][ 'force_quit' ] = true;
+					echo 'Please wait for script to terminate... ';
+				}
+				else
+				{
+					exit(1);
+				}
+			}
+			break;
+		}
+	}
+	
 }
 ?>

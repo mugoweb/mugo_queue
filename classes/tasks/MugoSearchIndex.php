@@ -18,7 +18,7 @@ class MugoSearchIndex extends MugoTaskMultiThread
 		
 		$limit = $parameters[ 'limit' ] ? $parameters[ 'limit' ] : false;
 
-		$node_rows = eZFunctionHandler::execute( 'content', 'tree', array( 'parent_node_id'     => 2,
+		$node_rows = eZFunctionHandler::execute( 'content', 'tree', array( 'parent_node_id'     => 1,
 		                                                                   'as_object'          => false,
 		                                                                   'limitation'         => array(),
 		                                                                   'main_node_only'     => true,
