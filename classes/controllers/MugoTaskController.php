@@ -2,14 +2,14 @@
 
 class MugoTaskController
 {
+	protected $mugo_task;
 
+	/**
+	 *
+	 * @var string
+	 */
 	public $log_destination = 'mugo_queue_controller.log';
 	public $mugoQueue;
-	
-	public function __construct( $mugoQueue )
-	{
-		$this->mugoQueue = $mugoQueue;
-	}
 	
 	/*
 	 * Directly adds a list of task ids to the queue
@@ -25,6 +25,7 @@ class MugoTaskController
 	 */
 	public function create( $task_type_id, $parameters = null, $limit = 0 )
 	{
+		//TODO: consider to get the mugo_task instance in __construct()
 		$mugo_task = MugoTaskController::task_factory( $task_type_id );
 		
 		$task_ids = $mugo_task->create( $parameters );
@@ -41,9 +42,13 @@ class MugoTaskController
 		
 		if( !empty( $tasks ) )
 		{
+			$this->pre_execute();
+			
 			foreach( $tasks as $task )
 			{
+				$this->mugo_task->pre_execute();
 				$success = $mugo_task->execute( $task[ 'id' ], $parameters );
+				$this->mugo_task->post_execute();
 				
 				if( $success )
 				{
@@ -61,7 +66,7 @@ class MugoTaskController
 				unset( $GLOBALS[ 'eZTemplateInstance' ] );
 			}
 			
-			$mugo_task->post_execute();
+			$this->post_execute();
 			
 			$this->log( count( $task_ids ) . ' task(s) executed.' );
 		}
@@ -101,11 +106,19 @@ class MugoTaskController
 		return $instance;
 	}	
 
+	protected function pre_execute()
+	{
+		$this->mugo_task->pre_controller_execute();
+	}
+	
+	protected function post_execute()
+	{
+		$this->mugo_task->post_controller_execute();
+	}
+	
 	protected function log( $message )
 	{
 		$output = '[' . get_class( $this ) . '] ' . $message;
 		eZLog::write( $output, $this->log_destination );
 	}
 }
-
-?>

@@ -50,10 +50,8 @@ class MugoSearchIndex extends MugoTaskMultiThread
 		return $success;
 	}
 	
-	public function post_execute()
+	public function post_thread_execute()
 	{
 		$this->engine->commit();
 	}
 }
-
-?>

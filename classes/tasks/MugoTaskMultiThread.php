@@ -80,5 +80,6 @@ class MugoTaskMultiThread extends MugoTask
 	{
 		return $this->batch_size;
 	}
+	
+	public function post_thread_execute() {}
 }
-?>

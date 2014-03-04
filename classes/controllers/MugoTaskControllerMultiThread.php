@@ -6,13 +6,13 @@ class MugoTaskControllerMultiThread extends MugoTaskController
 		
     public function execute( $task_type_id, $parameters = null, $limit = 0 )
 	{
-		$mugo_task = $this->task_factory( $task_type_id );
+		$this->mugo_task = $this->task_factory( $task_type_id );
 		$task_ids = $this->get_task_ids( $task_type_id, $limit );
 		
-		if( !empty( $task_ids ) && $mugo_task instanceof MugoTaskMultiThread )
+		if( !empty( $task_ids ) && $this->mugo_task instanceof MugoTaskMultiThread )
 		{
 			$i = 0;
-			$batch_size = $mugo_task->get_batch_size();
+			$batch_size = $this->mugo_task->get_batch_size();
 			
 			while( 1 )
 			{
@@ -25,7 +25,7 @@ class MugoTaskControllerMultiThread extends MugoTaskController
 
 				if( $i < count( $task_ids ) )
 				{
-					$mugo_task_thread = clone $mugo_task;
+					$mugo_task_thread = clone $this->mugo_task;
 					
 					$batch = array_slice( $task_ids, $i, $batch_size );
 
@@ -63,7 +63,7 @@ class MugoTaskControllerMultiThread extends MugoTaskController
 		$mugo_task = $this->pool[ $pid ];
 
 		$task_ids = $mugo_task->get_task_ids();
-		$mugo_task->post_execute();
+		$this->post_thread_execute();
 		
 		$this->mugoQueue->remove_tasks( get_class( $mugo_task ), $task_ids );
 
@@ -71,6 +71,11 @@ class MugoTaskControllerMultiThread extends MugoTaskController
 		unset( $this->pool[ $pid ] );
     }
 
+    protected function post_thread_execute()
+    {
+    	$this->mugo_task->post_thread_execute();
+    }
+    
 	public function setPoolSize( $size )
 	{
 		$this->pool_size = $size;
@@ -89,5 +94,3 @@ class MugoTaskControllerMultiThread extends MugoTaskController
 		return $return;
     }
 }
-
-?>
