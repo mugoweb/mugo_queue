@@ -10,7 +10,12 @@ class MugoTaskController
 	 */
 	public $log_destination = 'mugo_queue_controller.log';
 	public $mugoQueue;
-	
+
+	public function __construct( $queueHandler )
+	{
+		$this->mugoQueue = $queueHandler;
+	}
+
 	/*
 	 * Directly adds a list of task ids to the queue
 	 * TODO: check if the task_type_id is correct
@@ -29,15 +34,18 @@ class MugoTaskController
 		$mugo_task = MugoTaskController::task_factory( $task_type_id );
 		
 		$task_ids = $mugo_task->create( $parameters );
-		
-		$this->mugoQueue->add_tasks( $task_type_id, $task_ids, $limit );
-	
+
+		if( !empty( $task_ids ) )
+		{
+			$this->mugoQueue->add_tasks( $task_type_id, $task_ids, $limit );
+		}
+
 		$this->log( count( $task_ids ) . ' task(s) created.' );
-	}	
+	}
 
 	public function execute( $task_type_id, $parameters = null, $limit = 0 )
 	{
-		$mugo_task = MugoTaskController::task_factory( $task_type_id );
+		$this->mugo_task = MugoTaskController::task_factory( $task_type_id );
 		$tasks  = $this->mugoQueue->get_tasks( $task_type_id, $limit );
 		
 		if( !empty( $tasks ) )
@@ -47,7 +55,7 @@ class MugoTaskController
 			foreach( $tasks as $task )
 			{
 				$this->mugo_task->pre_execute();
-				$success = $mugo_task->execute( $task[ 'id' ], $parameters );
+				$success = $this->mugo_task->execute( $task[ 'id' ], $parameters );
 				$this->mugo_task->post_execute();
 				
 				if( $success )
@@ -68,7 +76,7 @@ class MugoTaskController
 			
 			$this->post_execute();
 			
-			$this->log( count( $task_ids ) . ' task(s) executed.' );
+			//$this->log( count( $task_ids ) . ' task(s) executed.' );
 		}
 		else
 		{

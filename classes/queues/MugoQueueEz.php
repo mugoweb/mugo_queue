@@ -32,7 +32,7 @@ class MugoQueueEz extends MugoQueue
 		{
 			if( $id !== '' )
 			{
-				$sql_inserts[] = '( "mugo-queue-'. $task_type_id .'", '. time() . ', '. $db->escapeString( $id ) . ')';
+				$sql_inserts[] = '( "mugo-queue-'. $task_type_id .'", '. time() . ', "'. $db->escapeString( $id ) . '")';
 			}
 			
 			if( ( count( $sql_inserts ) % 1000 ) == 999 )
