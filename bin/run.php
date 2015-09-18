@@ -217,5 +217,3 @@ $end_time = time();
 if ( !$is_quiet ) $cli->output( 'Total run time: ' . gmdate("H:i:s", ( $end_time - $start_time ) ) );
 
 $ezp_script_env->shutdown();
-
-?>

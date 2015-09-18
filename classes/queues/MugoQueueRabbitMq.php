@@ -9,7 +9,7 @@ use PhpAmqpLib\Message\AMQPMessage;
 class MugoQueueRabbitMq extends MugoQueue
 {
 	
-	public function add_tasks( $task_type_id, $task_ids, $limit )
+	public function add_tasks( $task_type_id, $task_ids )
 	{
 		$exchange = 'router';
 		$queue = 'msgs';
@@ -52,7 +52,6 @@ class MugoQueueRabbitMq extends MugoQueue
 		echo 'Not supported' . "\n";
 	}
 	
-	//TODO support to remove only one instance of duplicate task ids
 	public function remove_tasks( $task_type_id, $object_ids = null )
 	{
 		echo 'Not supported' . "\n";

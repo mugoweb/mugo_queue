@@ -15,7 +15,7 @@ class MugoTaskControllerDaemon extends MugoTaskController
 		{
 			$task = $tasks[ 0 ];
 			
-			$mugo_task = $this->task_factory( $task[ 'type' ] );
+			$mugo_task = MugoTask::factory( $task[ 'type' ] );
 			
 			if( $mugo_task instanceof MugoTask )
 			{

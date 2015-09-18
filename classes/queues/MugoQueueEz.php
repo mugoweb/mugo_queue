@@ -1,31 +1,12 @@
  <?php
 
-/*
- * Wrapper around a queue solution
- */
 class MugoQueueEz extends MugoQueue
 {
 	
-	/**
-	 * Enter description here ...
-	 * 
-	 * TODO: missing limit parameter handling
-	 * 
-	 * @param String $task_type_id
-	 * @param array $task_ids
-	 * @param unknown_type $limit
-	 */
-	public function add_tasks( $task_type_id, $task_ids, $limit )
+	public function add_tasks( $task_type_id, $task_ids )
 	{
 		$db = eZDB::instance();
-		
-		// Limit handling
-		$limit = (int)$limit;
-		if( $limit > 0 && $limit < count( $task_ids ) )
-		{
-			$task_ids = array_slice( $task_ids, 0, $limit );
-		}
-		
+
 		// Batch handling of INSERTs for best performance
 		$sql_inserts = array();
 		foreach( $task_ids as $index => $id )
@@ -52,8 +33,6 @@ class MugoQueueEz extends MugoQueue
 		}
 	}
 
-	
-	//TODO: put it back to just return a list of task ids
 	public function get_tasks( $task_type_id = null, $limit = false )
 	{
 		$return = array();
@@ -85,14 +64,14 @@ class MugoQueueEz extends MugoQueue
 		
 		if( !empty( $result ) )
 		{
+			//TODO: put it back to just return a list of task ids
 			$return = $result;
 		}
 		
 		return $return;
 	}
 	
-	//TODO support to remove only one instance of duplicate task ids
-	public function remove_tasks( $task_type_id, $object_ids = null )
+	public function remove_tasks( $task_type_id = null, $taskIds = null )
 	{
 		$db = eZDB::instance();
 
@@ -101,9 +80,9 @@ class MugoQueueEz extends MugoQueue
 		{
 			$sql_where .= 'action = "mugo-queue-' . $task_type_id . '" AND ';
 
-			if( !empty( $object_ids ) )
+			if( !empty( $taskIds ) )
 			{
-				$paramInSQL = $db->generateSQLInStatement( $object_ids, 'param' );
+				$paramInSQL = $db->generateSQLInStatement( $taskIds, 'param' );
 				$sql_where .= $paramInSQL . ' AND ';
 			}
 		}
@@ -151,7 +130,7 @@ class MugoQueueEz extends MugoQueue
 		
 		$db = eZDB::instance();
 		
-		$total = self::get_tasks_count();
+		$total = $this->get_tasks_count();
 		$rand_offset = floor( $total * ( rand(0, 999) / 1000 ) );
 		
 		$sql = 'SELECT SUBSTR( action, 12 ) AS type, param AS id FROM ezpending_actions WHERE action LIKE "mugo-queue-%" LIMIT '. $rand_offset . ', 1';
@@ -169,5 +148,3 @@ class MugoQueueEz extends MugoQueue
 	}
 	
 }
-
-?>

@@ -1,52 +1,70 @@
-<?php 
+<?php
 
+/**
+ * Class MugoTaskController
+ */
 class MugoTaskController
 {
+	/**
+	 * @var MugoTask
+	 */
 	protected $mugo_task;
 
 	/**
 	 *
+	 * @var MugoQueue
+	 */
+	public $mugoQueue;
+
+	/**
 	 * @var string
 	 */
-	public $log_destination = 'mugo_queue_controller.log';
-	public $mugoQueue;
+	protected $log_destination;
 
 	public function __construct( $queueHandler )
 	{
 		$this->mugoQueue = $queueHandler;
 	}
 
-	/*
-	 * Directly adds a list of task ids to the queue
-	 * TODO: check if the task_type_id is correct
-	 */
-	public function add( $task_type_id, $task_ids )
-	{
-		$this->mugoQueue->add_tasks( $task_type_id, $task_ids );		
-	}
-	
-	/* 
+	/**
 	 * Uses a Task instance to get a list of task ids and add those to the queue
+	 *
+	 * @param $task_type_id
+	 * @param null $parameters
+	 * @param int $limit
 	 */
 	public function create( $task_type_id, $parameters = null, $limit = 0 )
 	{
 		//TODO: consider to get the mugo_task instance in __construct()
-		$mugo_task = MugoTaskController::task_factory( $task_type_id );
+
+		$mugo_task = MugoTask::factory( $task_type_id );
 		
 		$task_ids = $mugo_task->create( $parameters );
 
+		// Limit handling
+		$limit = (int)$limit;
+		if( $limit > 0 && $limit < count( $task_ids ) )
+		{
+			$task_ids = array_slice( $task_ids, 0, $limit );
+		}
+
 		if( !empty( $task_ids ) )
 		{
-			$this->mugoQueue->add_tasks( $task_type_id, $task_ids, $limit );
+			$this->mugoQueue->add_tasks( $task_type_id, $task_ids );
 		}
 
 		$this->log( count( $task_ids ) . ' task(s) created.' );
 	}
 
+	/**
+	 * @param $task_type_id
+	 * @param null $parameters
+	 * @param int $limit
+	 */
 	public function execute( $task_type_id, $parameters = null, $limit = 0 )
 	{
-		$this->mugo_task = MugoTaskController::task_factory( $task_type_id );
-		$tasks  = $this->mugoQueue->get_tasks( $task_type_id, $limit );
+		$this->mugo_task = MugoTask::factory( $task_type_id );
+		$tasks = $this->mugoQueue->get_tasks( $task_type_id, $limit );
 		
 		if( !empty( $tasks ) )
 		{
@@ -66,11 +84,9 @@ class MugoTaskController
 				{
 					$this->log( 'Failed to execute task: ' . $task[ 'id' ] );
 				}
-	
+
 				//oom
-				unset( $GLOBALS[ 'eZContentObjectContentObjectCache' ] );
-				unset( $GLOBALS[ 'eZContentObjectDataMapCache' ] );
-				unset( $GLOBALS[ 'eZContentObjectVersionCache' ] );
+				eZContentObject::clearCache();
 				unset( $GLOBALS[ 'eZTemplateInstance' ] );
 			}
 			
@@ -80,53 +96,44 @@ class MugoTaskController
 		}
 		else
 		{
-			$this->log( 'no matching tasks queued' );
+			$this->log( 'no matching tasks found in queued' );
 		}
 	}
-		
+
+	/**
+	 * @param string $task_type_id
+	 * @return boolean
+	 */
 	public function remove( $task_type_id )
 	{
 		$this->log( 'Remove tasks' );
 		
-		$this->mugoQueue->remove_tasks( $task_type_id );
+		return $this->mugoQueue->remove_tasks( $task_type_id );
 	}
-	
-	public static function task_factory( $task_type_id )
-	{
-		$instance = null;
-		
-		if( class_exists( $task_type_id ) )
-		{
-			$instance = new $task_type_id;
-			
-			if( !( $instance instanceof MugoTask ) )
-			{
-				unset( $instance );
-			}
-		}
 
-		if( ! $instance )
-		{
-			//self::log( 'Cannot find Task class "'. $task_type_id .'"' );
-			echo 'Cannot find Task class "'. $task_type_id .'"';
-		}
-		
-		return $instance;
-	}	
-
+	/**
+	 *
+	 */
 	protected function pre_execute()
 	{
 		$this->mugo_task->pre_controller_execute();
 	}
-	
+
+	/**
+	 *
+	 */
 	protected function post_execute()
 	{
 		$this->mugo_task->post_controller_execute();
 	}
-	
+
+	/**
+	 * @param $message
+	 */
 	protected function log( $message )
 	{
+		$logDestination = $this->log_destination ? $this->log_destination : ( get_class( $this ) . '.log' );
 		$output = '[' . get_class( $this ) . '] ' . $message;
-		eZLog::write( $output, $this->log_destination );
+		eZLog::write( $output, $logDestination );
 	}
 }

@@ -284,5 +284,3 @@ class MugoAddAttribute extends MugoTask
         }
     }
 }
-
-?>

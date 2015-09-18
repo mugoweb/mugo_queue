@@ -6,7 +6,7 @@ class MugoTaskControllerMultiThread extends MugoTaskController
 		
     public function execute( $task_type_id, $parameters = null, $limit = 0 )
 	{
-		$this->mugo_task = $this->task_factory( $task_type_id );
+		$this->mugo_task = MugoTask::factory( $task_type_id );
 		$task_ids = $this->get_task_ids( $task_type_id, $limit );
 		
 		if( !empty( $task_ids ) && $this->mugo_task instanceof MugoTaskMultiThread )

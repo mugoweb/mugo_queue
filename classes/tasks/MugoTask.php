@@ -7,28 +7,33 @@ class MugoTask
 {
 
 	/**
-	 * TODO: consider to protect the var
 	 * @var string
 	 */
-	public $log_destination = 'mugo_task.log';
-	
+	protected $log_destination;
+
 	public function __construct(){}
-	
-	/*
+
+	/**
 	 * Creates an array of task IDs that get added to the queue for a later execute.
+	 *
+	 * @param array $parameters
+	 * @return array
 	 */
 	public function create( $parameters )
 	{
-		$task_ids = array();
-		return $task_ids;
+		return array();
 	}
 	
-	/*
+	/**
 	 * Executes on single task id.
+	 *
+	 * @param string $task_id
+	 * @param array $parameters
+	 * @return boolean
 	 */
 	public function execute( $task_id, $parameters )
 	{
-		return array();
+		return true;
 	}
 
 	/**
@@ -59,7 +64,37 @@ class MugoTask
 	 */
 	protected function log( $message )
 	{
+		$logDestination = $this->log_destination ? $this->log_destination : ( get_class( $this ) . '.log' );
+
 		$output = '[' . get_class( $this ) . '] ' . $message;
-		eZLog::write( $output, $this->log_destination );
+		eZLog::write( $output, $logDestination );
 	}
+
+	/**
+	 * @param string $task_type_id
+	 * @return null|MugoTask
+	 */
+	public static function factory( $task_type_id )
+	{
+		$instance = null;
+
+		if( class_exists( $task_type_id ) )
+		{
+			$instance = new $task_type_id;
+
+			if( !( $instance instanceof MugoTask ) )
+			{
+				unset( $instance );
+			}
+		}
+
+		if( ! $instance )
+		{
+			//self::log( 'Cannot find Task class "'. $task_type_id .'"' );
+			echo 'Cannot find Task class "'. $task_type_id .'"';
+		}
+
+		return $instance;
+	}
+
 }

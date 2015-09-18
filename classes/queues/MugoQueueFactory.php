@@ -18,5 +18,3 @@ class MugoQueueFactory
 		return $return;
 	}
 }
-
-?>
