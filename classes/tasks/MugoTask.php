@@ -5,11 +5,16 @@
  */
 class MugoTask
 {
-
 	/**
 	 * @var string
 	 */
 	protected $log_destination;
+
+	/**
+	 * @var string
+	 */
+	protected $queueIdentifier;
+
 
 	public function __construct(){}
 
@@ -49,12 +54,12 @@ class MugoTask
 	/**
 	 * The controller calls it before it starts executing tasks
 	 */
-	public function pre_controller_execute() {}
+	public function pre_thread_execute() {}
 
 	/**
 	 * The controller calls it after it executed all tasks
 	 */
-	public function post_controller_execute() {}
+	public function post_thread_execute() {}
 
 	/**
 	 * Helper function to log messages
@@ -71,16 +76,17 @@ class MugoTask
 	}
 
 	/**
-	 * @param string $task_type_id
+	 * @param string $taskTypeId
 	 * @return null|MugoTask
 	 */
-	public static function factory( $task_type_id )
+	public static function factory( $taskTypeId )
 	{
 		$instance = null;
 
-		if( class_exists( $task_type_id ) )
+		// Try to get an instance of the class
+		if( class_exists( $taskTypeId ) )
 		{
-			$instance = new $task_type_id;
+			$instance = new $taskTypeId;
 
 			if( !( $instance instanceof MugoTask ) )
 			{
@@ -88,13 +94,11 @@ class MugoTask
 			}
 		}
 
-		if( ! $instance )
-		{
-			//self::log( 'Cannot find Task class "'. $task_type_id .'"' );
-			echo 'Cannot find Task class "'. $task_type_id .'"';
-		}
-
 		return $instance;
 	}
 
+	public function getQueueIdentifier()
+	{
+		return $this->queueIdentifier ? $this->queueIdentifier : get_class( $this );
+	}
 }

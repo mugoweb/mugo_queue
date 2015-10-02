@@ -1,9 +1,11 @@
 <?php
+
 class MugoTaskMultiThread extends MugoTask
 {
 	protected $pid;
 	protected $ppid;
-	
+
+	// Store ids so we can remove them later
 	protected $task_ids;
 	protected $parameters;
 	protected $batch_size = 50;
@@ -12,6 +14,8 @@ class MugoTaskMultiThread extends MugoTask
 	
 	function fork()
 	{
+		eZClusterFileHandler::preFork();
+
 		$pid = pcntl_fork();
 
 		if ( $pid == -1 )
@@ -44,10 +48,12 @@ class MugoTaskMultiThread extends MugoTask
 			$db = eZDB::instance();
 			
 			// set script env
-			$this->script = eZScript::instance( array( 'debug-message' => '',
-			                                             'use-session' => true,
-			                                             'use-modules' => true,
-			                                             'use-extensions' => true ) );
+			$this->script = eZScript::instance( array(
+				'debug-message' => '',
+				'use-session' => true,
+				'use-modules' => true,
+				'use-extensions' => true )
+			);
 			
 			$this->script->startup();			
 			$this->script->initialize();

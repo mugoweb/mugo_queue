@@ -18,5 +18,3 @@ class MugoTaskControllerFactory
 		return $return;
 	}
 }
-
-?>

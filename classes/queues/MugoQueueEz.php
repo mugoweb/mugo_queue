@@ -2,10 +2,12 @@
 
 class MugoQueueEz extends MugoQueue
 {
-	
+	protected $batchSize = 100;
+
 	public function add_tasks( $task_type_id, $task_ids )
 	{
 		$db = eZDB::instance();
+		$db->begin();
 
 		// Batch handling of INSERTs for best performance
 		$sql_inserts = array();
@@ -13,10 +15,10 @@ class MugoQueueEz extends MugoQueue
 		{
 			if( $id !== '' )
 			{
-				$sql_inserts[] = '( "mugo-queue-'. $task_type_id .'", '. time() . ', "'. $db->escapeString( $id ) . '")';
+				$sql_inserts[] = '( "'. $db->escapeString( $task_type_id ) .'", '. time() . ', "'. $db->escapeString( $id ) . '")';
 			}
 			
-			if( ( count( $sql_inserts ) % 1000 ) == 999 )
+			if( !( count( $sql_inserts ) % $this->batchSize ) )
 			{
 				$sql = 'INSERT INTO ezpending_actions ( action, created, param ) VALUES ' . implode( ',',  $sql_inserts );
 				$db->query( $sql );
@@ -31,6 +33,8 @@ class MugoQueueEz extends MugoQueue
 			
 			$db->query( $sql );
 		}
+
+		$db->commit();
 	}
 
 	public function get_tasks( $task_type_id = null, $limit = false )
@@ -50,16 +54,12 @@ class MugoQueueEz extends MugoQueue
 		$sql_where = 'WHERE ';
 		if( $task_type_id )
 		{
-			$sql_where .= 'action = "mugo-queue-' . $task_type_id . '" AND ';
-		}
-		else
-		{
-			$sql_where .= 'action LIKE "mugo-queue-%" AND ';
+			$sql_where .= 'action = "'. $db->escapeString( $task_type_id ) .'" AND ';
 		}
 		$sql_where .= '1 ';
 		
 		$sql .= $sql_where . $sql_limit;
-		
+
 		$result = $db->arrayQuery( $sql );
 		
 		if( !empty( $result ) )
@@ -74,16 +74,24 @@ class MugoQueueEz extends MugoQueue
 	public function remove_tasks( $task_type_id = null, $taskIds = null )
 	{
 		$db = eZDB::instance();
+		$db->begin();
 
 		$sql_where = 'WHERE ';
 		if( $task_type_id )
 		{
-			$sql_where .= 'action = "mugo-queue-' . $task_type_id . '" AND ';
+			$sql_where .= 'action = "'. $db->escapeString( $task_type_id ) .'" AND ';
 
 			if( !empty( $taskIds ) )
 			{
-				$paramInSQL = $db->generateSQLInStatement( $taskIds, 'param' );
-				$sql_where .= $paramInSQL . ' AND ';
+				foreach( $taskIds as $index => $taskId )
+				{
+					if( is_string( $taskId ) )
+					{
+						$taskIds[ $index ] = '"'. $db->escapeString( $taskId ) .'"';
+					}
+				}
+
+				$sql_where .= 'param IN ('. implode( ',', $taskIds ) . ') AND ';
 			}
 		}
 
@@ -91,8 +99,9 @@ class MugoQueueEz extends MugoQueue
 		
 		$sql = 'DELETE FROM ezpending_actions ' . $sql_where;
 		//echo $sql;
-				
+
 		$db->query( $sql );
+		$db->commit();
 	}
 	
 	public function get_tasks_count( $task_type_id = null )
@@ -106,19 +115,17 @@ class MugoQueueEz extends MugoQueue
 		$sql_where = 'WHERE ';
 		if( $task_type_id )
 		{
-			$sql_where .= 'action = "mugo-queue-' . $task_type_id . '" AND ';
-		}
-		else
-		{
-			$sql_where .= 'action LIKE "mugo-queue-%" AND ';
+			$sql_where .= 'action = "'. $db->escapeString( $task_type_id ) .'" AND ';
 		}
 		$sql_where .= '1 ';
-		
+
+		$sql .= $sql_where;
+
 		$result = $db->arrayQuery( $sql );
-		
+
 		if( !empty( $result ) )
 		{
-			$return = $result[0][ 'total'];
+			$return = $result[0][ 'total' ];
 		}
 		
 		return $return;
@@ -133,7 +140,7 @@ class MugoQueueEz extends MugoQueue
 		$total = $this->get_tasks_count();
 		$rand_offset = floor( $total * ( rand(0, 999) / 1000 ) );
 		
-		$sql = 'SELECT SUBSTR( action, 12 ) AS type, param AS id FROM ezpending_actions WHERE action LIKE "mugo-queue-%" LIMIT '. $rand_offset . ', 1';
+		$sql = 'SELECT SUBSTR( action, 12 ) AS type, param AS id FROM ezpending_actions LIMIT '. $rand_offset . ', 1';
 		
 		//echo $sql;
 		

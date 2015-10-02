@@ -7,7 +7,7 @@ class MugoTaskControllerDaemon extends MugoTaskController
 	/**
 	 * 
 	 */
-	public function execute()
+	public function execute( $parameters = null, $limit = 0 )
 	{
 		$tasks  = MugoQueue::get_random_tasks();
 			
@@ -31,7 +31,7 @@ class MugoTaskControllerDaemon extends MugoTaskController
 				}
 				else
 				{
-					$this->log( 'Task "' . get_class( $mugo_task ) . '" with ID ' . $task[ 'id' ] . ' execution faild.' );
+					$this->log( 'Task "' . get_class( $mugo_task ) . '" with ID ' . $task[ 'id' ] . ' execution failed.' );
 				}
 				
 				//oom

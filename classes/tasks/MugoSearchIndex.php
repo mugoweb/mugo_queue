@@ -4,13 +4,12 @@ class MugoSearchIndex extends MugoTaskMultiThread
 {
 	protected $batch_size = 500;
 
-	private $engine;
+	protected $engine;
 	
 	public function __construct()
 	{
 		$this->engine = new eZSolr();
 	}
-	
 	
 	public function create( $parameters )
 	{
@@ -18,21 +17,22 @@ class MugoSearchIndex extends MugoTaskMultiThread
 		
 		$limit = $parameters[ 'limit' ] ? $parameters[ 'limit' ] : false;
 
-		$node_rows = eZFunctionHandler::execute( 'content', 'tree', array( 'parent_node_id'     => 1,
-		                                                                   'as_object'          => false,
-		                                                                   'limitation'         => array(),
-		                                                                   'main_node_only'     => true,
-		                                                                   'limit'              => $limit
+		$node_rows = eZFunctionHandler::execute( 'content', 'tree', array(
+			'parent_node_id'     => 1,
+			'as_object'          => false,
+			'limitation'         => array(),
+			'main_node_only'     => true,
+			'limit'              => $limit
 		) );
 				
 		if( !empty( $node_rows ) )
 		{
 			foreach( $node_rows as $row )
 			{
-				$return[] = $row[ 'contentobject_id' ];
+				$return[] = $row[ 'id' ];
 			}
 		}
-				
+
 		return $return;
 	}
 	

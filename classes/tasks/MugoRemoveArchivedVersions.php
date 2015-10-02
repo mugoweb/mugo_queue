@@ -3,19 +3,21 @@
 class MugoRemoveArchivedVersions extends MugoTask
 {
 
+	protected $versionStatuses = array(
+		eZContentObjectVersion::STATUS_DRAFT,
+		eZContentObjectVersion::STATUS_PENDING,
+		eZContentObjectVersion::STATUS_REJECTED,
+		eZContentObjectVersion::STATUS_ARCHIVED,
+		eZContentObjectVersion::STATUS_INTERNAL_DRAFT,
+	);
+
 	public function create( $parameters )
 	{
 		$return = array();		
 
-		$statuses = array( eZContentObjectVersion::STATUS_DRAFT,
-		                   eZContentObjectVersion::STATUS_PENDING,
-		                   eZContentObjectVersion::STATUS_REJECTED,
-		                   eZContentObjectVersion::STATUS_ARCHIVED,
-		                   eZContentObjectVersion::STATUS_INTERNAL_DRAFT );
-		
-		$fetchParameters = array( 
-		                          'status' => array( $statuses ),
-		                        );
+		$fetchParameters = array(
+			'status' => array( $this->versionStatuses ),
+		);
 				
 		// Age Filter
 		if( isset( $parameters[ 'age' ] ) )
@@ -24,12 +26,14 @@ class MugoRemoveArchivedVersions extends MugoTask
 			$fetchParameters[ 'modified' ] = array( '<', $cutOff );
 		}
 
-		$versions = eZPersistentObject::fetchObjectList( eZContentObjectVersion::definition(),
-		                                                 null,
-		                                                 $fetchParameters,
-		                                                 null,
-		                                                 null,
-		                                                 false );
+		$versions = eZPersistentObject::fetchObjectList(
+			eZContentObjectVersion::definition(),
+			null,
+			$fetchParameters,
+			null,
+			null,
+			false
+		);
 		
 		if( !empty( $versions ) )
 		{
@@ -62,5 +66,3 @@ class MugoRemoveArchivedVersions extends MugoTask
 		return $success;
 	}
 }
-
-?>

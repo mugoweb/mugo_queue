@@ -7,7 +7,7 @@ class MugoTaskControllerDaemonPCNTL extends MugoTaskController
 		pcntl_signal( SIGINT,  'MugoTaskControllerDaemonPCNTL::daemonSignalHandler' );
 	}
 		
-	public function execute()
+	public function execute( $parameters = null, $limit = 0 )
 	{
 		$tasks  = $this->mugoQueue->get_random_tasks();
 			
