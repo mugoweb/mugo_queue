@@ -2,11 +2,11 @@
 
 class MugoQueueFactory
 {
-	static public function factory( $className )
+	static public function factory( $className = null )
 	{
 		$return = null;
 		
-		if( class_exists( $className ) )
+		if( $className && class_exists( $className ) )
 		{
 			$return = new $className;
 		}

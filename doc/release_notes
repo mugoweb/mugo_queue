@@ -6,3 +6,7 @@ Release 0.1
 Release 0.2
 =============
 - Added a daemon script
+
+Release 0.3
+=============
+- Added web UI to control queues and tasks

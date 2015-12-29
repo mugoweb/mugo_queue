@@ -36,7 +36,7 @@ class MugoTask
 	 * @param array $parameters
 	 * @return boolean
 	 */
-	public function execute( $task_id, $parameters )
+	public function execute( $task_id, $parameters = null )
 	{
 		return true;
 	}
@@ -76,6 +76,22 @@ class MugoTask
 	}
 
 	/**
+	 * @return string
+	 */
+	public function getQueueIdentifier()
+	{
+		return $this->queueIdentifier ? $this->queueIdentifier : get_class( $this );
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getName()
+	{
+		return get_class( $this );
+	}
+
+	/**
 	 * @param string $taskTypeId
 	 * @return null|MugoTask
 	 */
@@ -83,10 +99,16 @@ class MugoTask
 	{
 		$instance = null;
 
+		// resolve to class name
+		$settings = eZINI::instance( 'mugo_queue.ini' );
+		$map = $settings->variable( 'General', 'TaskTypeIdToClassMap' );
+
+		$className = isset( $map[ $taskTypeId ] ) ? $map[ $taskTypeId ] : $taskTypeId;
+
 		// Try to get an instance of the class
-		if( class_exists( $taskTypeId ) )
+		if( class_exists( $className ) )
 		{
-			$instance = new $taskTypeId;
+			$instance = new $className;
 
 			if( !( $instance instanceof MugoTask ) )
 			{
@@ -97,8 +119,12 @@ class MugoTask
 		return $instance;
 	}
 
-	public function getQueueIdentifier()
+	public static function getAllTaskTypes()
 	{
-		return $this->queueIdentifier ? $this->queueIdentifier : get_class( $this );
+		$settings = eZINI::instance( 'mugo_queue.ini' );
+		$map = $settings->variable( 'General', 'TaskTypeIdToClassMap' );
+
+		return array_values( $map );
 	}
+
 }

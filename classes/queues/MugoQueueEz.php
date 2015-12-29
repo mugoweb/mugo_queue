@@ -2,7 +2,7 @@
 
 class MugoQueueEz extends MugoQueue
 {
-	protected $batchSize = 100;
+	protected $batchSize = 500;
 
 	public function add_tasks( $task_type_id, $task_ids )
 	{
@@ -37,7 +37,7 @@ class MugoQueueEz extends MugoQueue
 		$db->commit();
 	}
 
-	public function get_tasks( $task_type_id = null, $limit = false )
+	public function get_tasks( $task_type_id = null, $limit = false, $offset = null )
 	{
 		$return = array();
 		
@@ -45,12 +45,13 @@ class MugoQueueEz extends MugoQueue
 		
 		$sql = 'SELECT action AS type, param AS id FROM ezpending_actions ';
 		
-		$sql_limit = '';
+		$sql_page = '';
 		if( (int) $limit > 0 )
 		{
-			$sql_limit = 'LIMIT ' . $limit . ' ';
+			$sql_page .= 'LIMIT ' . $limit . ' ';
 		}
-		
+		$sql_page .= 'OFFSET ' . (int) $offset . ' ';
+
 		$sql_where = 'WHERE ';
 		if( $task_type_id )
 		{
@@ -58,7 +59,7 @@ class MugoQueueEz extends MugoQueue
 		}
 		$sql_where .= '1 ';
 		
-		$sql .= $sql_where . $sql_limit;
+		$sql .= $sql_where . $sql_page;
 
 		$result = $db->arrayQuery( $sql );
 		
@@ -103,8 +104,12 @@ class MugoQueueEz extends MugoQueue
 		$db->query( $sql );
 		$db->commit();
 	}
-	
-	public function get_tasks_count( $task_type_id = null )
+
+	/**
+	 * @param string $task_type_id
+	 * @return int|bool
+	 */
+	public function get_tasks_count( $task_type_id = '' )
 	{
 		$return = false;
 		
@@ -127,10 +132,32 @@ class MugoQueueEz extends MugoQueue
 		{
 			$return = $result[0][ 'total' ];
 		}
-		
+
 		return $return;
 	}
-	
+
+	/**
+	 *
+	 * @return array|bool
+	 */
+	public function getTaskTypeIdsWithCounts()
+	{
+		$return = false;
+
+		$db = eZDB::instance();
+
+		$sql = 'SELECT action AS task_type_id, count(*) AS total FROM ezpending_actions GROUP BY action';
+
+		$result = $db->arrayQuery( $sql );
+
+		if( !empty( $result ) )
+		{
+			$return = $result;
+		}
+
+		return $return;
+	}
+
 	public function get_random_tasks()
 	{
 		$return = array();

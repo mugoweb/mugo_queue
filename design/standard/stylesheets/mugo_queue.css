@@ -1,0 +1,32 @@
+.navigator li
+{
+    float: left;
+    list-style: none;
+    margin: 2px 1px 0px 1px;
+}
+
+.navigator li.current-index
+{
+    float: left;
+    list-style: none;
+    margin: 0 1px;
+}
+
+.navigator li a
+{
+    display: inline-block;
+    border: 1px solid black;
+    width: 45px;
+    padding: 3px 0 2px 0;
+    text-decoration: none;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.navigator li input
+{
+    border: 2px solid black;
+    width: 50px;
+    text-align: center;
+    height: 23px;
+}

@@ -60,7 +60,12 @@ class MugoRemoveArchivedVersions extends MugoTask
 				
 				// method removeThis always returns NULL...
 				$success = true;
-			}			
+			}
+			else
+			{
+				// version doesn't exist anymore?
+				$success = true;
+			}
 		}
 		
 		return $success;

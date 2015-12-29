@@ -21,7 +21,7 @@ class MugoQueue
 	 * @param bool $limit
 	 * @return array
 	 */
-	public function get_tasks( $task_type_id = null, $limit = false )
+	public function get_tasks( $task_type_id = null, $limit = false, $offset = null )
 	{
 		return array();
 	}
