@@ -49,8 +49,8 @@ class MugoQueueEz extends MugoQueue
 		if( (int) $limit > 0 )
 		{
 			$sql_page .= 'LIMIT ' . $limit . ' ';
+			$sql_page .= 'OFFSET ' . (int) $offset . ' ';
 		}
-		$sql_page .= 'OFFSET ' . (int) $offset . ' ';
 
 		$sql_where = 'WHERE ';
 		if( $task_type_id )
