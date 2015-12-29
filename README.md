@@ -46,3 +46,7 @@ the tasks at night (or at other low traffic times).
 
 The Mugo Queue framework enables you to execute tasks not only from the command line
 context but also in the context of a normal Apache request.
+
+See also
+---
+http://www.mugo.ca/Blog/mugo-queue-ezpublish-tasks
