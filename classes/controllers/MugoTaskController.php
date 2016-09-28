@@ -40,24 +40,48 @@ class MugoTaskController
 	 */
 	public function create( $parameters = null, $limit = 0 )
 	{
-		$task_ids = $this->mugo_task->create( $parameters );
+		$parameters[ 'offset' ] = $parameters[ 'offset' ] ?: 0;
+		$parameters[ 'limit' ] = $parameters[ 'limit' ] ?: (int)$limit;
 
-		// Limit handling
-		$limit = (int)$limit;
-		if( $limit > 0 && $limit < count( $task_ids ) )
+		if( !$parameters[ 'limit' ] > 0 )
 		{
-			$task_ids = array_slice( $task_ids, 0, $limit );
-		}
+			do
+			{
+				$task_ids = $this->mugo_task->create( $parameters );
+				$this->addTasksToQueue( $task_ids );
 
+				$parameters[ 'offset' ] += $this->mugo_task->getCreateBatchSize();
+			}
+			while( $this->mugo_task->getCreateBatchSize() > 0 && !empty( $task_ids ) );
+		}
+		// A given limit does not fetch task ids in a do/while loop
+		else
+		{
+			$task_ids = $this->mugo_task->create( $parameters );
+
+			// Limit handling
+			if( $parameters[ 'limit' ] < count( $task_ids ) )
+			{
+				$task_ids = array_slice( $task_ids, 0, $limit );
+			}
+
+			$this->addTasksToQueue( $task_ids );
+		}
+	}
+
+	protected function addTasksToQueue( $task_ids )
+	{
 		if( !empty( $task_ids ) )
 		{
 			$this->mugoQueue->add_tasks(
 				$this->mugo_task->getQueueIdentifier(),
 				$task_ids
 			);
+
+			$this->log( count( $task_ids ) . ' task(s) created.' );
 		}
 
-		$this->log( count( $task_ids ) . ' task(s) created.' );
+		return $this;
 	}
 
 	/**

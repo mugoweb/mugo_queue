@@ -11,11 +11,22 @@ class MugoTask
 	protected $log_destination;
 
 	/**
+	 * Identifier used for items in the queue. Must be unique. Falls back to class name.
+	 *
 	 * @var string
 	 */
 	protected $queueIdentifier;
 
+	/**
+	 * For larger creation processes, it's required to do it in batches
+	 * MugoTask::create will recieve the limit and
+	 * @var int
+	 */
+	protected $createBatchSize = 0;
 
+	/**
+	 * MugoTask constructor.
+	 */
 	public function __construct(){}
 
 	/**
@@ -81,6 +92,14 @@ class MugoTask
 	public function getQueueIdentifier()
 	{
 		return $this->queueIdentifier ? $this->queueIdentifier : get_class( $this );
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getCreateBatchSize()
+	{
+		return $this->createBatchSize;
 	}
 
 	/**
