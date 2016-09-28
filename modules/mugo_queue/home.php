@@ -36,6 +36,7 @@ ksort( $tasksData );
 $tpl->setVariable( 'tasks_data', $tasksData );
 
 $Result[ 'content' ] = $tpl->fetch( 'design:modules/mugo_queue/home.tpl' );
+$Result[ 'left_menu' ]  = 'design:mugo_system_tools/left_menu.tpl';
 $Result[ 'path' ] = array(
 	array( 'url' => '/mugo_queue/home', 'text' => 'Mugo Queue Home' ),
 );

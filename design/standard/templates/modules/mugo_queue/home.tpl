@@ -20,7 +20,7 @@
 	</thead>
 	<tbody>
 		{if $tasks_data}
-			{foreach $tasks_data as $row sequence array( 'yui-dt-even', 'yui-dt-odd' ) as $row_class}
+			{foreach $tasks_data as $name => $row sequence array( 'yui-dt-even', 'yui-dt-odd' ) as $row_class}
 				<tr class="{$row_class}">
 					<td>
 						<a href={concat( '/mugo_queue/list?task_type_id=', $row[ 'name' ] )}>{$row[ 'name' ]|wash()}</a>
@@ -29,7 +29,7 @@
 						{$row[ 'count' ]|wash()}
 					</td>
 					<td>
-						<button disabled>Remove all</button>
+						<button data-task-type-id="{$name|wash()}" class="remove-all">Remove all</button>
 					</td>
 				</tr>
 			{/foreach}
@@ -42,3 +42,42 @@
 		{/if}
 	</tbody>
 </table>
+
+<script>
+{literal}
+$(function()
+{
+	var baseUrlRemove = {/literal}{'/mugo_queue/remove_all'|ezurl()}{literal};
+
+	$( '.remove-all' ).click(function ()
+	{
+		var taskTypeId = $( this ).attr( 'data-task-type-id' );
+		if( taskTypeId )
+		{
+			$.ajax(
+			{
+				method: 'POST',
+				url: baseUrlRemove,
+				data:
+				{
+					task_type_id : taskTypeId,
+				},
+			})
+			.done( function( response )
+			{
+				response = $.trim( response );
+
+				if( response )
+				{
+					alert( response );
+				}
+				else
+				{
+					location.reload();
+				}
+			});
+		}
+	});
+});
+{/literal}
+</script>

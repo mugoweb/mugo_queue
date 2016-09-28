@@ -4,11 +4,13 @@ $Module = array( 'name' => 'mugo_queue' );
 $ViewList = array();
 
 $ViewList[ 'home' ] = array(
+	'default_navigation_part' => 'mugosystemtoolsnavigationpart',
 	'script' => 'home.php',
 	'functions' => array( 'view' )
 );
 
 $ViewList[ 'list' ] = array(
+	'default_navigation_part' => 'mugosystemtoolsnavigationpart',
 	'script' => 'list.php',
 	'functions' => array( 'view' )
 );
@@ -25,9 +27,16 @@ $ViewList[ 'add' ] = array(
 
 $ViewList[ 'remove' ] = array(
 	'script' => 'remove.php',
-	'functions' => array( 'edit' )
+	'functions' => array( 'remove' )
+);
+
+$ViewList[ 'remove_all' ] = array(
+	'script' => 'remove_all.php',
+	'functions' => array( 'remove_all' )
 );
 
 $FunctionList = array();
 $FunctionList[ 'view' ] = array();
 $FunctionList[ 'edit' ] = array();
+$FunctionList[ 'remove' ] = array();
+$FunctionList[ 'remove_all' ] = array();

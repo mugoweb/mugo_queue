@@ -32,6 +32,7 @@ if( $task_type_id )
 }
 
 $Result[ 'content' ] = $tpl->fetch( 'design:modules/mugo_queue/tasks.tpl' );
+$Result[ 'left_menu' ]  = 'design:mugo_system_tools/left_menu.tpl';
 $Result[ 'path' ] = array(
 	array( 'url' => '/mugo_queue/home', 'text' => 'Mugo Queue Home' ),
 	array( 'url' => false, 'text' => 'Task' ),
