@@ -16,9 +16,6 @@ class MugoIndexContent extends MugoSearchIndex
 			{
 				$success = $this->engine->addObject( $object, false );
 				eZContentCacheManager::clearContentCacheIfNeeded( $task_id );
-
-				// CSM specific
-				CSMFunctionCollection::clearViewCache( $object );
 			}
 			else
 			{
