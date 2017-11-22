@@ -1,47 +1,51 @@
- <?php
+<?php
 
 class MugoQueueEz extends MugoQueue
 {
 	protected $batchSize = 500;
 
-	public function add_tasks( $task_type_id, $task_ids )
+	public function add_tasks( $task_type_id, $task_ids, $unique = false )
 	{
-		// Batch handling of INSERTs for best performance
-		$sql_inserts = array();
-		foreach( $task_ids as $index => $id )
+		if( $unique )
 		{
-			if( $id !== '' )
+			foreach( $task_ids as $index => $id )
 			{
-				$sql_inserts[] = '( "'. eZDB::instance()->escapeString( $task_type_id ) .'", '. time() . ', "'. eZDB::instance()->escapeString( $id ) . '")';
-			}
-			
-			if( !( count( $sql_inserts ) % $this->batchSize ) )
-			{
-				$this->insertIntoDB( $sql_inserts );
-				$sql_inserts = array();
+				$sql =
+					'INSERT INTO `ezpending_actions` ( action, created, param )
+					SELECT "' . eZDB::instance()->escapeString( $task_type_id ) . '", ' . time() . ', "' . eZDB::instance()->escapeString( $id ) . '" FROM DUAL
+					WHERE NOT EXISTS (SELECT * FROM `ezpending_actions`
+						  WHERE action="' . eZDB::instance()->escapeString( $task_type_id ) . '" AND param="' . eZDB::instance()->escapeString( $id ) . '" )
+					LIMIT 1';
+
+				$db = eZDB::instance();
+				$db->query( $sql );
 			}
 		}
-		
-		if( !empty( $sql_inserts ) )
+		else
 		{
-			$this->insertIntoDB( $sql_inserts );
+			// Batch handling of INSERTs for best performance
+			$sql_inserts = array();
+			foreach( $task_ids as $index => $id )
+			{
+				if( $id !== '' )
+				{
+					$sql_inserts[] = '( "'. eZDB::instance()->escapeString( $task_type_id ) .'", '. time() . ', "'. eZDB::instance()->escapeString( $id ) . '")';
+				}
+
+				if( !( count( $sql_inserts ) % $this->batchSize ) )
+				{
+					$this->insertIntoDB( $sql_inserts );
+					$sql_inserts = array();
+				}
+			}
+
+			if( !empty( $sql_inserts ) )
+			{
+				$this->insertIntoDB( $sql_inserts );
+			}
 		}
 
 		return true;
-	}
-
-	private function insertIntoDB( $sql_inserts )
-	{
-		$db = eZDB::instance();
-		$db->begin();
-		{
-			$result = $db->query(
-				'INSERT INTO ezpending_actions ( action, created, param ) VALUES ' . implode( ',',  $sql_inserts )
-			);
-		}
-		$db->commit();
-
-		return $result;
 	}
 
 	public function get_tasks( $task_type_id = null, $limit = false, $offset = null )
@@ -145,15 +149,22 @@ class MugoQueueEz extends MugoQueue
 
 	/**
 	 *
+	 * @param array $taskTypeIds
 	 * @return array|bool
 	 */
-	public function getTaskTypeIdsWithCounts()
+	public function getTaskTypeIdsWithCounts( $taskTypeIds = array() )
 	{
 		$return = false;
 
 		$db = eZDB::instance();
 
-		$sql = 'SELECT action AS task_type_id, count(*) AS total FROM ezpending_actions GROUP BY action';
+		$sqlInStatement = '1=1';
+		if( !empty( $taskTypeIds ) )
+		{
+			$sqlInStatement = $this->arrayToSqlIn( $taskTypeIds, 'action' );
+		}
+
+		$sql = 'SELECT action AS task_type_id, count(*) AS total FROM ezpending_actions WHERE '. $sqlInStatement .' GROUP BY action';
 
 		$result = $db->arrayQuery( $sql );
 
@@ -165,16 +176,36 @@ class MugoQueueEz extends MugoQueue
 		return $return;
 	}
 
-	public function get_random_tasks()
+	/**
+	 * @param integer $count
+	 * @param array $taskTypeIds
+	 * @return array
+	 */
+	public function getRandomTaskIds( $count, $taskTypeIds = array() )
 	{
 		$return = array();
 		
 		$db = eZDB::instance();
-		
-		$total = $this->get_tasks_count();
+
+		$sqlInStatement = '1=1';
+		if( !empty( $taskTypeIds ) )
+		{
+			$sqlInStatement = $this->arrayToSqlIn( $taskTypeIds, 'action' );
+		}
+
+		// get random index (offset)
+		$countSql = 'SELECT count(*) AS total FROM ezpending_actions WHERE ' . $sqlInStatement;
+
+		$countResult = $db->arrayQuery( $countSql );
+
+		if( !empty( $countResult ) )
+		{
+			$total = $countResult[0][ 'total' ];
+		}
 		$rand_offset = floor( $total * ( rand(0, 999) / 1000 ) );
-		
-		$sql = 'SELECT SUBSTR( action, 12 ) AS type, param AS id FROM ezpending_actions LIMIT '. $rand_offset . ', 1';
+
+		// get task data
+		$sql = 'SELECT action AS type, param AS id FROM ezpending_actions WHERE '. $sqlInStatement .' LIMIT '. $rand_offset . ', 1';
 		
 		//echo $sql;
 		
@@ -187,5 +218,30 @@ class MugoQueueEz extends MugoQueue
 		
 		return $return;
 	}
-	
+
+	/**
+	 * @param array $elements
+	 * @param string $dbField
+	 * @return string
+	 */
+	protected function arrayToSqlIn( $elements, $dbField )
+	{
+		$db = eZDB::instance();
+		return $dbField . ' IN ( "' . implode('","', array_map( array( $db, 'escapeString' ), $elements ) ) . '" )';
+	}
+
+	private function insertIntoDB( $sql_inserts )
+	{
+		$db = eZDB::instance();
+		$db->begin();
+		{
+			$result = $db->query(
+				'INSERT INTO ezpending_actions ( action, created, param ) VALUES ' . implode( ',',  $sql_inserts )
+			);
+		}
+		$db->commit();
+
+		return $result;
+	}
+
 }

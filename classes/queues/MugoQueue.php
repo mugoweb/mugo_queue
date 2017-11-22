@@ -9,9 +9,10 @@ class MugoQueue
 	 *
 	 * @param string $task_type_id
 	 * @param array $task_ids
+	 * @param bool $unique
 	 * @return bool
 	 */
-	public function add_tasks( $task_type_id, $task_ids )
+	public function add_tasks( $task_type_id, $task_ids, $unique = false )
 	{
 		return true;
 	}
@@ -51,12 +52,21 @@ class MugoQueue
 	}
 
 	/**
-	 *
-	 * @return boolean|string
+	 * @param $count
+	 * @param array $taskTypeIds
+	 * @return string
 	 */
-	public function get_random_tasks()
+	public function getRandomTaskIds( $count, $taskTypeIds = array() )
 	{
-		return false;
+		return '';
 	}
-	
+
+	/**
+	 * @param array $taskTypeIds
+	 * @return array
+	 */
+	public function getTaskTypeIdsWithCounts( $taskTypeIds = array() )
+	{
+		return array();
+	}
 }

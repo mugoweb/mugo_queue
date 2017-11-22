@@ -1,4 +1,7 @@
 <?php
+
+declare(ticks = 1);
+
 class MugoTaskControllerDaemonPCNTL extends MugoTaskController
 {
 	function __construct()

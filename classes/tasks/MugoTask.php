@@ -19,7 +19,7 @@ class MugoTask
 
 	/**
 	 * For larger creation processes, it's required to do it in batches
-	 * MugoTask::create will recieve the limit and
+	 * MugoTask::create will recieve the limit and offset
 	 * @var int
 	 */
 	protected $createBatchSize = 0;

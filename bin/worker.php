@@ -1,18 +1,12 @@
 <?php
+
 /*
  * Call me like this:
  * 
  * php extension/mugo_queue/bin/worker.php 
  * 
  */
-declare( ticks = 1 );
-
 require 'autoload.php';
-
-if( file_exists( 'config.php' ) )
-{
-	require 'config.php';
-}
 
 $params = new ezcConsoleInput();
 
@@ -30,8 +24,14 @@ $params->registerOption( $helpOption );
 $maxload_option = new ezcConsoleOption( 'm', 'maxload', ezcConsoleInput::TYPE_INT );
 $maxload_option->mandatory = false;
 $maxload_option->shorthelp = 'Limitation to a maximal load (uses 5min average load value).';
-$maxload_option->default = 1;
+$maxload_option->default = 5;
 $params->registerOption( $maxload_option );
+
+$verboseOption = new ezcConsoleOption( 'v', 'verbose', ezcConsoleInput::TYPE_NONE );
+$verboseOption->mandatory = false;
+$verboseOption->shorthelp = 'Echos verbose information to console.';
+$verboseOption->default = false;
+$params->registerOption( $verboseOption );
 
 // Process console parameters
 try
@@ -52,16 +52,25 @@ catch ( ezcConsoleOptionException $e )
  ***************/
 // Init an eZ Publish script - needed for some API function calls
 // and a siteaccess switcher
-$ezp_script_env = eZScript::instance( array( 'debug-message' => '',
-                                             'use-session' => true,
-                                             'use-modules' => true,
-                                             'use-extensions' => true ) );
+$ezp_script_env = eZScript::instance( array(
+	'debug-message' => '',
+	'use-session' => true,
+	'use-modules' => true,
+	'use-extensions' => true
+) );
 
 $ezp_script_env->startup();
 $ezp_script_env->initialize();
 
+$settings = eZINI::instance( 'mugo_queue.ini' );
+
+
 $mugoQueue = MugoQueueFactory::factory();
-$controller = MugoTaskControllerFactory::factory( 'MugoTaskControllerDaemonPCNTL' );
+$controller = MugoTaskControllerFactory::factory(
+	'MugoTaskControllerDaemon',
+	$mugoQueue,
+	null
+);
 
 // The endless loop
 $GLOBALS[ 'mugo_daemon' ][ 'running' ] = true;
@@ -69,47 +78,44 @@ $GLOBALS[ 'mugo_daemon' ][ 'force_quit' ] = false;
 
 while( $GLOBALS[ 'mugo_daemon' ][ 'running' ] )
 {
-	if( ! is_too_busy() )
+	if( ! $controller->isTooBusy( $maxload_option->value ) )
 	{
-		if( has_work( $mugoQueue ) )
+		customDbPing();
+
+		if( $controller->hasWork( $mugoQueue ) )
 		{
-			echo '+';
+			if( $verboseOption->value ) echo '+';
 			$controller->execute();
 			
-			sleep( 3 );
+			sleep( $settings->variable( 'Worker', 'HasWorkDelay' ) );
 		}
 		else
 		{
-			echo '0';
-			sleep( 30 );
+			if( $verboseOption->value ) echo '0';
+			sleep( $settings->variable( 'Worker', 'EmptyQueueDelay' ) );
 		}
 	}
 	else
 	{
-		echo '.';
-		sleep( 60 );
+		if( $verboseOption->value ) echo '.';
+		sleep( $settings->variable( 'Worker', 'LoadToHighDelay' ) );
 	}
 }
 
 $ezp_script_env->shutdown();
-echo 'Script done' . "\n";
+if( $verboseOption->value ) echo 'Script done' . "\n";
 
-/*
- * Functions
+
+/**
+ * mysqli_ping custom solution
  */
-
-/*
- * just checks the OS system load
- */
-function is_too_busy()
+function customDbPing()
 {
-	$load = sys_getloadavg();
-	return $load[ 0 ] > 1;
-}
+	$db = eZDB::instance();
+	$db->query( 'SELECT * FROM ezpending_actions LIMIT 1' );
 
-function has_work()
-{
-	return $mugoQueue->get_tasks_count() > 0;
+	if( $db->ErrorNumber == 2006 )
+	{
+		eZDB::setInstance( eZDB::instance( false, false, true ) );
+	}
 }
-
-?>
