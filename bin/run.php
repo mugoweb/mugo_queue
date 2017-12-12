@@ -154,7 +154,7 @@ if( $mugoTask )
 	{
 		$action = trim( $action );
 
-		if( !$is_quiet ) $cli->output( 'Action: ' . $action . ' Task Type Id: ' . $task_class . ' Limit: ' . $limit . ' Parameter Count: ' . count( $parameters ) );
+		if( !$is_quiet ) $cli->output( 'Action: ' . $action . ' Task Type Id: ' . $task_class_option->value . ' Limit: ' . $limit . ' Parameter Count: ' . count( $parameters ) );
 
 		switch( $action )
 		{
