@@ -6,7 +6,7 @@
  * php extension/mugo_queue/bin/worker.php 
  * 
  */
-require 'autoload.php';
+require_once 'autoload.php';
 
 $params = new ezcConsoleInput();
 

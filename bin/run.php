@@ -9,7 +9,7 @@
  */
 ini_set( 'memory_limit', '-1' );
 
-require 'autoload.php';
+require_once 'autoload.php';
 
 $params = new ezcConsoleInput();
 
