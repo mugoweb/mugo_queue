@@ -4,7 +4,7 @@ class MugoIndexContent extends MugoSearchIndex
 {
 	protected $queueIdentifier = 'index_object';
 
-	public function execute( $task_id, $parameters )
+	public function execute( $task_id, $parameters = null )
 	{
 		$success = false;
 		

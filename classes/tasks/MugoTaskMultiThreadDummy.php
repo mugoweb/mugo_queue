@@ -15,7 +15,7 @@ class MugoTaskMultiThreadDummy extends MugoTaskMultiThread
 		return $return;
 	}
 	
-	public function execute( $task_id, $parameters )
+	public function execute( $task_id, $parameters = null )
 	{
 		// Dummy execution
 		return true;

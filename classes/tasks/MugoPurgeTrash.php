@@ -43,7 +43,7 @@ class MugoPurgeTrash extends MugoTask
 		return $return;
 	}
 	
-	public function execute( $task_id, $parameters )
+	public function execute( $task_id, $parameters = null )
 	{
 		$success = false;
 		
@@ -79,5 +79,3 @@ class MugoPurgeTrash extends MugoTask
 		return $success;
 	}
 }
-
-?>

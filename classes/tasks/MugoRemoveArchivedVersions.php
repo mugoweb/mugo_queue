@@ -46,7 +46,7 @@ class MugoRemoveArchivedVersions extends MugoTask
 		return $return;
 	}
 	
-	public function execute( $task_id, $parameters )
+	public function execute( $task_id, $parameters = null )
 	{
 		$success = false;
 		

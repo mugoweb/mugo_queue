@@ -4,7 +4,7 @@ class MugoIndexMovedNode extends MugoTask
 {
 	protected $queueIdentifier = 'index_moved_node';
 
-	public function execute( $task_id, $parameters )
+	public function execute( $task_id, $parameters = null )
 	{
 		$success = false;
 

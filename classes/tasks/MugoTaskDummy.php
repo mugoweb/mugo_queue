@@ -9,7 +9,7 @@ class MugoTaskDummy extends MugoTask
 		return array( 1 );
 	}
 	
-	public function execute( $task_id, $parameters )
+	public function execute( $task_id, $parameters = null )
 	{
 		// Dummy execution
 		return true;
