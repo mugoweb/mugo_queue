@@ -21,6 +21,7 @@ class MugoSearchIndex extends MugoTaskMultiThread
 			'parent_node_id'     => 1,
 			'as_object'          => false,
 			'limitation'         => array(),
+			'ignore_visibility'  => true,
 			'main_node_only'     => true,
 			'limit'              => $limit
 		) );

@@ -1,0 +1,19 @@
+{
+    "name": "mugoweb/mugo_queue",
+    "description": "Queue system for ezpublish",
+    "type": "ezpublish-legacy-extension",
+    "license": "GPL-2.0",
+    "authors": [
+        {
+            "name": "Philipp Kamps",
+            "homepage": "https://www.mugo.ca"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "ezsystems/ezpublish-legacy-installer": "*"
+    },
+    "extra": {
+        "ezpublish-legacy-extension-name": "mugo_queue"
+    }
+}
