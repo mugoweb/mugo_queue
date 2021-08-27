@@ -52,7 +52,7 @@ $params->registerOption( $threads_option );
 
 $siteaccess_option = new ezcConsoleOption( 's', 'siteaccess', ezcConsoleInput::TYPE_STRING );
 $siteaccess_option->mandatory = false;
-$siteaccess_option->shorthelp = "The siteaccess name. Not yet supported";
+$siteaccess_option->shorthelp = "Setting the siteaccess context. If not set, it uses the default siteaccess.";
 $params->registerOption( $siteaccess_option );
 
 $user_option = new ezcConsoleOption( 'u', 'user', ezcConsoleInput::TYPE_STRING );
