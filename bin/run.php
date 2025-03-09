@@ -124,7 +124,7 @@ $limit			= (int) $limit_option->value;
 $options_str	= $options_option->value;
 
 // Build parameter array from given string
-$parameters = null;
+$parameters = [];
 if( $options_str )
 {
 	$options_parts = explode( ',', $options_str );
